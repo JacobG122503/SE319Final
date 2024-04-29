@@ -13,7 +13,7 @@ function App() {
     return <div className='category-section fixed'>
       {console.log("Step 3 : in render_products ")}
       <h2 className="text-3xl font-extrabold tracking-tight text-gray-600 category-title">Sandwiches ({products.length})</h2>
-      <br/>
+      <br />
       <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
         {/* Loop */}
         {products.map((product, index) => (
@@ -49,10 +49,32 @@ function App() {
     );
   }
 
+  function About() {
+    return (
+      <div>
+        <br/><br/>
+        <h2>About</h2>
+        <br/>
+        <p>
+          <strong>
+          SE/ComS319 Construction of User Interfaces, Spring 2024<br/>
+          5/9/24<br/><br/>
+          </strong>
+
+          Jacob Garcia - jacobgar@iastate.edu<br/>
+          Katharine Endersby - kateende@iastate.edu
+        </p>
+      </div>
+    );
+  }
+
   const viewMain = () => {
     setViewer(0);
   };
 
+  const viewAbout = () => {
+    setViewer(1);
+  };
 
   return (
     <div>
@@ -69,29 +91,23 @@ function App() {
             <button
               type="button"
               className="btn btn-outline-success"
-            // onClick={viewRead}
+              onClick={viewAbout}
             >
-              Read
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline-success"
-            // onClick={viewUpdate}
-            >
-              Update
+              About
             </button>
             <button
               type="button"
               className="btn btn-outline-success"
             // onClick={viewDelete}
             >
-              Delete
+              Cart
             </button>
           </div>
         </div>
       </header>
       <br />
       {viewer === 0 && <Main />}
+      {viewer === 1 && <About />}
     </div>
   );
 }
