@@ -74,7 +74,6 @@ function App() {
   }
 
   function EditSandwich() {
-
     return (
       <div>
         <br /><br />
@@ -98,11 +97,20 @@ function App() {
         <div>
           <h2 style={{ textAlign: "center" }}>Ingredients</h2>
           <p>Bread: {currentSand["bread"]}</p>
-          
+          {Object.entries(currentSand.ingredients).map(([key, value], index) => (
+            <p key={index}> {value.name}: <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => toggleIngredient(index)} >{value.on.toString()}</button></p>
+          ))}
         </div>
       </div>
     );
   }
+
+  const toggleIngredient = (index) => {
+    const updatedIngredients = [...currentSand.ingredients];
+    updatedIngredients[index].on = !updatedIngredients[index].on;
+    setCurrentSand({ ...currentSand, ingredients: updatedIngredients });
+  };
+
 
   const viewMain = () => {
     setViewer(0);
