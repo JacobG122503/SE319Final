@@ -7,17 +7,17 @@ const products = require('./food/sandwiches.json');
 function App() {
 
   const [viewer, setViewer] = useState(0);
+  const [currentSand, setCurrentSand] = useState([]);
 
   const render_products = (products) => {
 
     return <div className='category-section fixed'>
-      {console.log("Step 3 : in render_products ")}
       <h2 className="text-3xl font-extrabold tracking-tight text-gray-600 category-title">Sandwiches ({products.length})</h2>
       <br />
       <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
         {/* Loop */}
         {products.map((product, index) => (
-          <div className="col">
+          <div className="col" key={product.id} >
             <div className="card shadow-sm">
               <img className="productImage" src={product.image} alt={product.sandwich} />
               <div className="card-body">
@@ -25,7 +25,10 @@ function App() {
                 <br />
                 <div className="d-flex justify-content-between align-items-center">
                   <div className="btn-group">
-                    <button type="button" className="btn btn-sm btn-outline-secondary">Add to Cart</button>
+                    <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => {
+                      viewEditSandwich();
+                      setCurrentSand(product);
+                    }} >Add to Cart</button>
                   </div>
                   <small className="text-body-secondary">${product.price}</small>
                 </div>
@@ -35,7 +38,7 @@ function App() {
         ))}
       </div>
     </div>
-  }; // end render_products
+  };
 
 
   function Main() {
@@ -52,18 +55,51 @@ function App() {
   function About() {
     return (
       <div>
-        <br/><br/>
-        <h2>About</h2>
-        <br/>
-        <p>
-          <strong>
-          SE/ComS319 Construction of User Interfaces, Spring 2024<br/>
-          5/9/24<br/><br/>
-          </strong>
+        <center>
+          <br /><br />
+          <h2>About</h2>
+          <br />
+          <p>
+            <strong>
+              SE/ComS319 Construction of User Interfaces, Spring 2024<br />
+              5/9/24<br /><br />
+            </strong>
 
-          Jacob Garcia - jacobgar@iastate.edu<br/>
-          Katharine Endersby - kateende@iastate.edu
-        </p>
+            Jacob Garcia - jacobgar@iastate.edu<br />
+            Katharine Endersby - kateende@iastate.edu
+          </p>
+        </center>
+      </div>
+    );
+  }
+
+  function EditSandwich() {
+
+    return (
+      <div>
+        <br /><br />
+        <center>
+          <div className="customize">
+            <h1>Customize Sandwich</h1>
+          </div>
+          <div className="customize">
+            <h2>{currentSand.sandwich}</h2>
+          </div>
+          <div className="customize">
+            <div style={{ width: "250px", height: "250px", overflow: "hidden" }}>
+              <img
+                style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                src={currentSand.image}
+                alt={currentSand.sandwich}
+              />
+            </div>
+          </div>
+        </center>
+        <div>
+          <h2 style={{ textAlign: "center" }}>Ingredients</h2>
+          <p>Bread: {currentSand["bread"]}</p>
+          
+        </div>
       </div>
     );
   }
@@ -74,6 +110,10 @@ function App() {
 
   const viewAbout = () => {
     setViewer(1);
+  };
+
+  const viewEditSandwich = () => {
+    setViewer(2);
   };
 
   return (
@@ -108,6 +148,7 @@ function App() {
       <br />
       {viewer === 0 && <Main />}
       {viewer === 1 && <About />}
+      {viewer === 2 && <EditSandwich />}
     </div>
   );
 }
