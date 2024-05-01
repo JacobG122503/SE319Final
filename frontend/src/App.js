@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import './App.css';
 import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 const products = require('./food/sandwiches.json');
 
 
@@ -26,8 +27,8 @@ function App() {
                 <div className="d-flex justify-content-between align-items-center">
                   <div className="btn-group">
                     <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => {
-                      viewEditSandwich();
                       setCurrentSand(product);
+                      viewEditSandwich();
                     }} >Add to Cart</button>
                   </div>
                   <small className="text-body-secondary">${product.price}</small>
@@ -74,6 +75,20 @@ function App() {
   }
 
   function EditSandwich() {
+
+    const toggleIngredient = (index) => {
+      const updatedIngredients = [...currentSand.ingredients];
+      updatedIngredients[index].on = !updatedIngredients[index].on;
+      setCurrentSand({ ...currentSand, ingredients: updatedIngredients });
+    };
+
+    const clearIngredients = () => {
+      const updatedIngredients = currentSand.ingredients.map(ingredient => {
+        return { ...ingredient, on: true };
+      });
+      setCurrentSand({ ...currentSand, ingredients: updatedIngredients });
+    };
+
     return (
       <div>
         <br /><br />
@@ -98,19 +113,152 @@ function App() {
           <h2 style={{ textAlign: "center" }}>Ingredients</h2>
           <p>Bread: {currentSand["bread"]}</p>
           {Object.entries(currentSand.ingredients).map(([key, value], index) => (
-            <p key={index}> {value.name}: <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => toggleIngredient(index)} >{value.on.toString()}</button></p>
+            <p key={index}> {value.name}: <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => toggleIngredient(index)} >{value.on ? "Remove" : "Add"}</button></p>
           ))}
         </div>
       </div>
     );
   }
 
-  const toggleIngredient = (index) => {
-    const updatedIngredients = [...currentSand.ingredients];
-    updatedIngredients[index].on = !updatedIngredients[index].on;
-    setCurrentSand({ ...currentSand, ingredients: updatedIngredients });
-  };
+  const [paymentInfo, setPaymentInfo] = useState({});
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+
+  function Cart() {
+
+    const onSubmit = (data) => {
+      document.getElementById("fullname").value = "";
+      setPaymentInfo(data);
+      setViewer(4);
+    };
+
+    const cartReturn = () => {
+      setViewer(0);
+      setPaymentInfo({});
+    }
+
+    // useEffect(() => {
+    //   total();
+    // }, [cart]);
+
+    return (
+      <div>
+        <br /><br />
+        <button onClick={cartReturn} className="btn btn-primary">Return</button>
+        <br />
+        <br />
+        {/* <div>{cartItems}</div> */}
+        <br />
+        <div style={{ textAlign: "right", fontSize: "20px", fcolor: "red" }}>Total: ${/*cartTotal*/}</div>
+        <form onSubmit={handleSubmit(onSubmit)} className="container mt-5" id="paymentForm">
+          <div className="form-group">
+            <p>Full Name</p>
+            <input
+              {...register("fullName", { required: true })}
+              placeholder="" className="form-control"
+              id="fullname"
+            />
+            {errors.fullName && <p className="text-danger">Full Name is required.</p>}
+          </div>
+
+          <div className="form-group">
+            <p>Email</p>
+            <input
+              {...register("email", { required: true, pattern: /^\S+@\S+$/i })}
+              placeholder="" className="form-control"
+            />
+            {errors.email && <p className="text-danger">Email is required.</p>}
+          </div>
+
+          <div className="form-group">
+            <p>Credit Card</p>
+            <input
+              {...register("creditCard", { required: true, minLength: 16, maxLength: 16 })}
+              placeholder="XXXX XXXX XXXX XXXX" className="form-control"
+            />
+            {errors.creditCard && <p className="text-danger">Credit Card is required.</p>}
+          </div>
+
+          <div className="form-group">
+            <p>Address</p>
+            <input
+              {...register("address", { required: true })}
+              placeholder="1234 Main St" className="form-control"
+            />
+            {errors.address && <p className="text-danger">Address is required.</p>}
+          </div>
+
+          <div className="form-group">
+            <p>Address 2</p>
+            <input {...register("address2")} placeholder="Apartment, Studio, or Floor" className="form-control" />
+          </div>
+
+          <div className="form-group">
+            <p>City</p>
+            <input
+              {...register("city", { required: true })}
+              placeholder="" className="form-control"
+            />
+            {errors.city && <p className="text-danger">City is required.</p>}
+          </div>
+
+          <div className="form-group">
+            <p>State</p>
+            <input
+              {...register("state", { required: true })}
+              placeholder="" className="form-control"
+            />
+            {errors.state && <p className="text-danger">State is required.</p>}
+          </div>
+
+          <div className="form-group">
+            <p>Zip</p>
+            <input {...register("zip", { required: true, minLength: 5, maxLength: 5 })} placeholder="12345" className="form-control" />
+            {errors.zip && <p className="text-danger">Zip is required.</p>}
+          </div>
+
+          <br />
+          <button type="submit" className="btn btn-primary">Order</button>
+          <br /><br />
+        </form>
+      </div>
+    );
+  }
+
+  function Confirmation() {
+    const updateHooks = () => {
+      setViewer(0);
+      setPaymentInfo({});
+      // setCart([]);
+    };
+
+    return (
+      <div>
+        <br/><br/><br/>
+        <h1>Payment Summary</h1>
+        {/* <div>{cartItems}</div> */}
+        <br />
+        <div style={{textAlign: "right", fontSize: "20px", fcolor: "red"}}>Total: ${/*cartTotal*/}</div>
+        <h3>{paymentInfo.fullName}</h3>
+        <p>{paymentInfo.email}</p>
+        <p>{paymentInfo.creditCard}</p>
+        <p>
+          {paymentInfo.address}
+          {paymentInfo.address2}
+        </p>
+        <p>
+          {paymentInfo.city}, {paymentInfo.state} {paymentInfo.zip}{" "}
+        </p>
+
+        <button onClick={updateHooks} className="btn btn-secondary">Submit</button>
+      </div>
+    );
+  }
 
   const viewMain = () => {
     setViewer(0);
@@ -122,6 +270,10 @@ function App() {
 
   const viewEditSandwich = () => {
     setViewer(2);
+  };
+
+  const viewCart = () => {
+    setViewer(3);
   };
 
   return (
@@ -146,7 +298,7 @@ function App() {
             <button
               type="button"
               className="btn btn-outline-success"
-            // onClick={viewDelete}
+              onClick={viewCart}
             >
               Cart
             </button>
@@ -157,6 +309,8 @@ function App() {
       {viewer === 0 && <Main />}
       {viewer === 1 && <About />}
       {viewer === 2 && <EditSandwich />}
+      {viewer === 3 && <Cart />}
+      {viewer === 4 && <Confirmation />}
     </div>
   );
 }
