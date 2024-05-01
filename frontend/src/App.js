@@ -29,7 +29,7 @@ function App() {
                     <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => {
                       setCurrentSand(product);
                       viewEditSandwich();
-                    }} >Add to Cart</button>
+                    }} >Select</button>
                   </div>
                   <small className="text-body-secondary">${product.price}</small>
                 </div>
@@ -121,6 +121,26 @@ function App() {
   }
 
   const [paymentInfo, setPaymentInfo] = useState({});
+  const [cart, setCart] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
+
+  const cartItems = cart.map((el) => (
+    <div key={el.id}>
+      <img class="img-fluid" src={el.image} width={150} />
+      <br />
+      {el.sandwich}
+      <br />
+      <div style={{ fontSize: "20px" }}> ${el.price} </div>
+    </div>
+  ));
+
+  const total = () => {
+    let totalVal = 0;
+    for (let i = 0; i < cart.length; i++) {
+      totalVal += (cart[i].price * cart[i].amount);
+    }
+    setCartTotal(totalVal);
+  };
 
   const {
     register,
@@ -128,13 +148,24 @@ function App() {
     formState: { errors },
   } = useForm();
 
+  function loadCart() {
+    fetch("http://localhost:8081/cart")
+    .then((response) => response.json())
+    .then((cart) => {
+      setCart(cart);
+    });
+  }
+
+  useEffect(() => {
+    loadCart();
+  }, []);
 
   function Cart() {
 
     const onSubmit = (data) => {
       document.getElementById("fullname").value = "";
       setPaymentInfo(data);
-      setViewer(4);
+      setViewer(3);
     };
 
     const cartReturn = () => {
@@ -142,9 +173,9 @@ function App() {
       setPaymentInfo({});
     }
 
-    // useEffect(() => {
-    //   total();
-    // }, [cart]);
+    useEffect(() => {
+      total();
+    }, [cart]);
 
     return (
       <div>
@@ -152,9 +183,9 @@ function App() {
         <button onClick={cartReturn} className="btn btn-primary">Return</button>
         <br />
         <br />
-        {/* <div>{cartItems}</div> */}
+        <div>{cartItems}</div>
         <br />
-        <div style={{ textAlign: "right", fontSize: "20px", fcolor: "red" }}>Total: ${/*cartTotal*/}</div>
+        <div style={{ textAlign: "right", fontSize: "20px", fcolor: "red" }}>Total: ${cartTotal}</div>
         <form onSubmit={handleSubmit(onSubmit)} className="container mt-5" id="paymentForm">
           <div className="form-group">
             <p>Full Name</p>
@@ -239,11 +270,11 @@ function App() {
 
     return (
       <div>
-        <br/><br/><br/>
+        <br /><br /><br />
         <h1>Payment Summary</h1>
-        {/* <div>{cartItems}</div> */}
+        <div>{cartItems}</div>
         <br />
-        <div style={{textAlign: "right", fontSize: "20px", fcolor: "red"}}>Total: ${/*cartTotal*/}</div>
+        <div style={{ textAlign: "right", fontSize: "20px", fcolor: "red" }}>Total: ${cartTotal}</div>
         <h3>{paymentInfo.fullName}</h3>
         <p>{paymentInfo.email}</p>
         <p>{paymentInfo.creditCard}</p>
