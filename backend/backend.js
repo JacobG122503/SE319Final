@@ -83,8 +83,11 @@ app.put("/update/:id", async (req, res) => {
   console.log("Keys: ", keys[0]);
   console.log("Value: ", req.body[keys[0]])
 
-  const sandwichUpdated = await db.collection("cart").findOne(query);
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).send({ message: "Invalid ID format" });
+  }
 
+  try {
   // Data for updating the document, typically comes from the request body
   console.log(req.body);
   const updateData = {
@@ -105,6 +108,10 @@ app.put("/update/:id", async (req, res) => {
   res.status(200);
   res.send(results);
   //res.send(sandwichUpdated);
+} catch (error) {
+  console.error("Error updating sandwich:", error);
+  res.status(500).send({ error: "An internal server error occurred" });
+}
 });
 
 app.delete("/deleteSandwich/:id", async (req, res) => {
