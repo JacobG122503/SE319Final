@@ -149,7 +149,7 @@ function App() {
 
   const cartItems = cart.map((el) => (
     <div key={el._id} style={{ display: "inline-block", marginRight: "20px" }}>
-      <img className="img-fluid" src={el.image} width={150} />
+      <img className="img-fluid" src={el.image} alt={el.sandwich} style={{ width: "150px", height: "150px", objectFit: "cover" }} />
       <br />
       <div>{el.sandwich}</div>
       <div style={{ fontSize: "20px" }}> ${el.price} </div>
@@ -173,27 +173,28 @@ function App() {
     </div>
   ));
 
+
   function EditSandwichSpecial() {
 
     const UpdateSandwich = async (ingIndex) => {
       currentSpecSand.ingredients[ingIndex].on = !currentSpecSand.ingredients[ingIndex].on;
       setcurrentSpecSand({ ...currentSpecSand });
-    
+
       const { _id, ...updateData } = currentSpecSand;
-    
+
       try {
         const response = await fetch(`http://localhost:8081/update/${_id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(updateData), 
+          body: JSON.stringify(updateData),
         });
-    
+
         if (!response.ok) {
           throw new Error(`Failed to update sandwich (${_id}): ${response.statusText}`);
         }
-    
+
         const updatedSandwich = await response.json();
         console.log('Sandwich updated successfully:', updatedSandwich);
         return updatedSandwich;
@@ -202,8 +203,8 @@ function App() {
         throw error;
       }
     };
-    
-    
+
+
 
     return (
       <div>
@@ -231,7 +232,7 @@ function App() {
           {Object.entries(currentSpecSand.ingredients).map(([key, value], index) => (
             <p key={index}> {value.name}: <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => UpdateSandwich(index)} >{value.on ? "Remove" : "Add"}</button></p>
           ))}
-          <button type="button" className="btn btn-outline-success" onClick={() => { viewMain() }}>Return to Cart</button>
+          <button type="button" className="btn btn-outline-success" onClick={() => { viewCart() }}>Return to Cart</button>
           <br /><br />
         </div>
       </div>
