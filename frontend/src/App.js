@@ -145,6 +145,8 @@ function App() {
   const [cart, setCart] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
 
+  const [currentSpecSand, setcurrentSpecSand] = useState([]);
+
   const cartItems = cart.map((el) => (
     <div key={el._id} style={{ display: "inline-block", marginRight: "20px" }}>
       <img className="img-fluid" src={el.image} width={150} />
@@ -156,17 +158,85 @@ function App() {
           <div
             key={ingredient.name}
             style={{
-              marginBottom: "5px", 
+              marginBottom: "5px",
             }}
           >
             {ingredient.on ? ingredient.name : `NO ${ingredient.name}`}
           </div>
         ))}
-        <button type="button" className="btn btn-outline-secondary" onClick={() => {}}>Edit</button>
-        <button type="button" className="btn btn-outline-danger" onClick={() => {}}>Remove</button>
+        <button type="button" className="btn btn-outline-secondary" onClick={() => {
+          setcurrentSpecSand(el);
+          viewEditSandwichSpecial();
+        }}>Edit</button>
+        <button type="button" className="btn btn-outline-danger" onClick={() => { }}>Remove</button>
       </div>
     </div>
   ));
+
+  function EditSandwichSpecial() {
+
+    const UpdateSandwich = async (ingIndex) => {
+      currentSpecSand.ingredients[ingIndex].on = !currentSpecSand.ingredients[ingIndex].on;
+      setcurrentSpecSand({ ...currentSpecSand });
+    
+      const { _id, ...updateData } = currentSpecSand;
+    
+      try {
+        const response = await fetch(`http://localhost:8081/update/${_id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData), 
+        });
+    
+        if (!response.ok) {
+          throw new Error(`Failed to update sandwich (${_id}): ${response.statusText}`);
+        }
+    
+        const updatedSandwich = await response.json();
+        console.log('Sandwich updated successfully:', updatedSandwich);
+        return updatedSandwich;
+      } catch (error) {
+        console.error('Error updating sandwich:', error);
+        throw error;
+      }
+    };
+    
+    
+
+    return (
+      <div>
+        <br /><br />
+        <center>
+          <div className="customize">
+            <h1>Customize Sandwich (Special)</h1>
+          </div>
+          <div className="customize">
+            <h2>{currentSpecSand.sandwich}</h2>
+          </div>
+          <div className="customize">
+            <div style={{ width: "250px", height: "250px", overflow: "hidden" }}>
+              <img
+                style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                src={currentSpecSand.image}
+                alt={currentSpecSand.sandwich}
+              />
+            </div>
+          </div>
+        </center>
+        <div>
+          <h2 style={{ textAlign: "center" }}>Ingredients</h2>
+          <p>Bread: {currentSpecSand["bread"]}</p>
+          {Object.entries(currentSpecSand.ingredients).map(([key, value], index) => (
+            <p key={index}> {value.name}: <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => UpdateSandwich(index)} >{value.on ? "Remove" : "Add"}</button></p>
+          ))}
+          <button type="button" className="btn btn-outline-success" onClick={() => { viewMain() }}>Return to Cart</button>
+          <br /><br />
+        </div>
+      </div>
+    );
+  }
 
 
 
@@ -342,6 +412,10 @@ function App() {
     setViewer(3);
   };
 
+  const viewEditSandwichSpecial = () => {
+    setViewer(5);
+  };
+
   return (
     <div>
       <header data-bs-theme="dark">
@@ -377,6 +451,7 @@ function App() {
       {viewer === 2 && <EditSandwich />}
       {viewer === 3 && <Cart />}
       {viewer === 4 && <Confirmation />}
+      {viewer === 5 && <EditSandwichSpecial />}
     </div>
   );
 }

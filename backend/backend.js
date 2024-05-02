@@ -3,6 +3,7 @@ var cors = require("cors");
 var app = express();
 var bodyParser = require("body-parser");
 const { MongoClient } = require("mongodb");
+const { ObjectId } = require('mongodb');
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -80,7 +81,7 @@ app.put("/update/:id/:ingredient", async (req, res) => {
   const query = { _id: id };
   await client.connect();
   console.log("Sandwich to Update :", id);
- // console.log("Ingredient to update: ", ingredient);
+  // console.log("Ingredient to update: ", ingredient);
 
   const sandwichUpdated = await db.collection("cart").findOne(query);
 
@@ -90,7 +91,7 @@ app.put("/update/:id/:ingredient", async (req, res) => {
     $set: {
       [ingredient]: req.body.ingredient
     },
-  }; 
+  };
 
   // Add options if needed, for example { upsert: true } to create a document if it doesn't exist
   const options = {};
@@ -104,6 +105,37 @@ app.put("/update/:id/:ingredient", async (req, res) => {
   res.status(200);
   res.send(results);
   res.send(sandwichUpdated);
+});
+
+app.put("/update/:id", async (req, res) => {
+  const id = req.params.id;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).send({ message: "Invalid ID format" });
+  }
+
+  try {
+    const query = { _id: new ObjectId(id) }; 
+    const sandwichUpdated = await db.collection("cart").findOne(query);
+
+    if (!sandwichUpdated) {
+      return res.status(404).send({ message: "Sandwich not found" });
+    }
+
+    const updateData = req.body;
+
+    const options = {};
+    const result = await db.collection("cart").updateOne(query, { $set: updateData }, options);
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: "Update failed: Sandwich not found" });
+    }
+
+    res.status(200).send({ message: "Sandwich updated successfully", updatedSandwich: updateData });
+  } catch (error) {
+    console.error("Error updating sandwich:", error);
+    res.status(500).send({ error: "An internal server error occurred" });
+  }
 });
 
 app.listen(port, () => {
