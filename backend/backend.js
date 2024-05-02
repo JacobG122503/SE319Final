@@ -71,16 +71,16 @@ app.post("/addSandwich", async (req, res) => {
   }
 });
 
-app.put("/update/:id/:ingredient", async (req, res) => {
-
-  //pass in the ingredient to update through the parameters, then include the boolean in the body as "ingredient": bool
+app.put("/update/:id", async (req, res) => {
 
   const id = Number(req.params.id);
-  const ingredient = req.params.ingredient;
+  const keys = Object.keys(req.body);
+  const ingredient = keys[0];
   const query = { id: id };
   await client.connect();
   console.log("Sandwich to Update :", id);
- // console.log("Ingredient to update: ", ingredient);
+  console.log("Keys: ", keys[0]);
+  console.log("Value: ", req.body[keys[0]])
 
   const sandwichUpdated = await db.collection("cart").findOne(query);
 
@@ -88,7 +88,7 @@ app.put("/update/:id/:ingredient", async (req, res) => {
   console.log(req.body);
   const updateData = {
     $set: {
-      [ingredient]: req.body.ingredient
+      [ingredient]: req.body[keys[0]]
     },
   }; 
 
@@ -103,7 +103,28 @@ app.put("/update/:id/:ingredient", async (req, res) => {
 
   res.status(200);
   res.send(results);
-  res.send(sandwichUpdated);
+  //res.send(sandwichUpdated);
+});
+
+app.delete("/deleteSandwich/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await client.connect();
+    console.log("Sandwich to delete :", id);
+    const query = { id: id };
+
+    const robotDeleted = await db.collection("cart").findOne(query);
+
+    // delete
+    const results = await db.collection("cart").deleteOne(query);
+    res.status(200);
+    res.send(results);
+
+    res.send(robotDeleted);
+  } catch (error) {
+    console.error("Error deleting sandwich:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
 });
 
 app.listen(port, () => {
