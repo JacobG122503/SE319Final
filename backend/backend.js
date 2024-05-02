@@ -26,10 +26,10 @@ app.get("/cart", async (req, res) => {
 });
 
 app.get("/:id", async (req, res) => {
-  const itemid = Number(req.params.id);
+  const itemid = Number(req.params._id);
   await client.connect();
   console.log("Node connected successfully to GET-id MongoDB");
-  const query = { id: itemid };
+  const query = { _id: itemid };
   const results = await db.collection("cart").findOne(query);
   console.log("Results :", results);
   if (!results) res.send("Not Found").status(404);
@@ -55,7 +55,7 @@ app.post("/addSandwich", async (req, res) => {
 
     const existingDoc = await db
       .collection("cart")
-      .findOne({ id: newDocument.id });
+      .findOne({ _id: newDocument._id });
     if (existingDoc) {
       return res
         .status(409)
@@ -75,9 +75,9 @@ app.put("/update/:id/:ingredient", async (req, res) => {
 
   //pass in the ingredient to update through the parameters, then include the boolean in the body as "ingredient": bool
 
-  const id = Number(req.params.id);
+  const id = Number(req.params._id);
   const ingredient = req.params.ingredient;
-  const query = { id: id };
+  const query = { _id: id };
   await client.connect();
   console.log("Sandwich to Update :", id);
  // console.log("Ingredient to update: ", ingredient);
