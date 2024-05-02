@@ -108,13 +108,12 @@ function App() {
           {Object.entries(currentSand.ingredients).map(([key, value], index) => (
             <p key={index}> {value.name}: <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => toggleIngredient(index)} >{value.on ? "Remove" : "Add"}</button></p>
           ))}
-          <button type="button" className="btn btn-outline-success" onClick={() => { PostSandwich(currentSand); }}>Add to Cart</button>
-          <br/><br/>
+          <button type="button" className="btn btn-outline-success" onClick={() => { PostSandwich(currentSand); viewMain() }}>Add to Cart</button>
+          <br /><br />
         </div>
       </div>
     );
   }
-
 
   const PostSandwich = async (sandwichData) => {
     try {
@@ -147,14 +146,29 @@ function App() {
   const [cartTotal, setCartTotal] = useState(0);
 
   const cartItems = cart.map((el) => (
-    <div key={el._id}>
+    <div key={el._id} style={{ display: "inline-block", marginRight: "20px" }}>
       <img className="img-fluid" src={el.image} width={150} />
       <br />
-      {el.sandwich}
-      <br />
+      <div>{el.sandwich}</div>
       <div style={{ fontSize: "20px" }}> ${el.price} </div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {el.ingredients.map((ingredient) => (
+          <div
+            key={ingredient.name}
+            style={{
+              marginBottom: "5px", 
+            }}
+          >
+            {ingredient.on ? ingredient.name : `NO ${ingredient.name}`}
+          </div>
+        ))}
+        <button type="button" className="btn btn-outline-secondary" onClick={() => {}}>Edit</button>
+        <button type="button" className="btn btn-outline-danger" onClick={() => {}}>Remove</button>
+      </div>
     </div>
   ));
+
+
 
   const total = () => {
     let totalVal = 0;
@@ -201,10 +215,9 @@ function App() {
 
     return (
       <div>
-        <br /><br />
-        <button onClick={cartReturn} className="btn btn-primary">Return</button>
         <br />
         <br />
+        <h2>Cart Items({cartItems.length})</h2>
         <div>{cartItems}</div>
         <br />
         <div style={{ textAlign: "right", fontSize: "20px", fcolor: "red" }}>Total: ${cartTotal}</div>
