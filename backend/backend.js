@@ -3,6 +3,7 @@ var cors = require("cors");
 var app = express();
 var bodyParser = require("body-parser");
 const { MongoClient } = require("mongodb");
+const { ObjectId } = require('mongodb');
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -26,10 +27,10 @@ app.get("/cart", async (req, res) => {
 });
 
 app.get("/:id", async (req, res) => {
-  const itemid = Number(req.params.id);
+  const itemid = Number(req.params._id);
   await client.connect();
   console.log("Node connected successfully to GET-id MongoDB");
-  const query = { id: itemid };
+  const query = { _id: itemid };
   const results = await db.collection("cart").findOne(query);
   console.log("Results :", results);
   if (!results) res.send("Not Found").status(404);
@@ -55,7 +56,7 @@ app.post("/addSandwich", async (req, res) => {
 
     const existingDoc = await db
       .collection("cart")
-      .findOne({ id: newDocument.id });
+      .findOne({ _id: newDocument._id });
     if (existingDoc) {
       return res
         .status(409)
@@ -90,7 +91,7 @@ app.put("/update/:id", async (req, res) => {
     $set: {
       [ingredient]: req.body[keys[0]]
     },
-  }; 
+  };
 
   // Add options if needed, for example { upsert: true } to create a document if it doesn't exist
   const options = {};

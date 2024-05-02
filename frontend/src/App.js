@@ -18,7 +18,7 @@ function App() {
       <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
         {/* Loop */}
         {products.map((product, index) => (
-          <div className="col" key={product.id} >
+          <div className="col" key={product.sandwich} >
             <div className="card shadow-sm">
               <img className="productImage" src={product.image} alt={product.sandwich} />
               <div className="card-body">
@@ -82,13 +82,6 @@ function App() {
       setCurrentSand({ ...currentSand, ingredients: updatedIngredients });
     };
 
-    const clearIngredients = () => {
-      const updatedIngredients = currentSand.ingredients.map(ingredient => {
-        return { ...ingredient, on: true };
-      });
-      setCurrentSand({ ...currentSand, ingredients: updatedIngredients });
-    };
-
     return (
       <div>
         <br /><br />
@@ -115,29 +108,143 @@ function App() {
           {Object.entries(currentSand.ingredients).map(([key, value], index) => (
             <p key={index}> {value.name}: <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => toggleIngredient(index)} >{value.on ? "Remove" : "Add"}</button></p>
           ))}
+          <button type="button" className="btn btn-outline-success" onClick={() => { PostSandwich(currentSand); viewMain() }}>Add to Cart</button>
+          <br /><br />
         </div>
       </div>
     );
   }
 
+  const PostSandwich = async (sandwichData) => {
+    try {
+      const response = await fetch('http://localhost:8081/addSandwich', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(sandwichData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to post sandwich: ' + response.statusText);
+      }
+
+      // Handle success
+      const responseData = await response.json();
+      console.log('Sandwich posted successfully:', responseData);
+      loadCart();
+      return responseData;
+    } catch (error) {
+
+      console.error('Error posting sandwich:', error);
+      throw error;
+    }
+  };
+
   const [paymentInfo, setPaymentInfo] = useState({});
   const [cart, setCart] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
 
+  const [currentSpecSand, setcurrentSpecSand] = useState([]);
+
   const cartItems = cart.map((el) => (
-    <div key={el.id}>
-      <img class="img-fluid" src={el.image} width={150} />
+    <div key={el._id} style={{ display: "inline-block", marginRight: "20px" }}>
+      <img className="img-fluid" src={el.image} alt={el.sandwich} style={{ width: "150px", height: "150px", objectFit: "cover" }} />
       <br />
-      {el.sandwich}
-      <br />
+      <div>{el.sandwich}</div>
       <div style={{ fontSize: "20px" }}> ${el.price} </div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {el.ingredients.map((ingredient) => (
+          <div
+            key={ingredient.name}
+            style={{
+              marginBottom: "5px",
+            }}
+          >
+            {ingredient.on ? ingredient.name : `NO ${ingredient.name}`}
+          </div>
+        ))}
+        <button type="button" className="btn btn-outline-secondary" onClick={() => {
+          setcurrentSpecSand(el);
+          viewEditSandwichSpecial();
+        }}>Edit</button>
+        <button type="button" className="btn btn-outline-danger" onClick={() => { }}>Remove</button>
+      </div>
     </div>
   ));
+
+
+  function EditSandwichSpecial() {
+
+    const UpdateSandwich = async (ingIndex) => {
+      currentSpecSand.ingredients[ingIndex].on = !currentSpecSand.ingredients[ingIndex].on;
+      setcurrentSpecSand({ ...currentSpecSand });
+
+      const { _id, ...updateData } = currentSpecSand;
+
+      try {
+        const response = await fetch(`http://localhost:8081/update/${_id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update sandwich (${_id}): ${response.statusText}`);
+        }
+
+        const updatedSandwich = await response.json();
+        console.log('Sandwich updated successfully:', updatedSandwich);
+        return updatedSandwich;
+      } catch (error) {
+        console.error('Error updating sandwich:', error);
+        throw error;
+      }
+    };
+
+
+
+    return (
+      <div>
+        <br /><br />
+        <center>
+          <div className="customize">
+            <h1>Customize Sandwich (Special)</h1>
+          </div>
+          <div className="customize">
+            <h2>{currentSpecSand.sandwich}</h2>
+          </div>
+          <div className="customize">
+            <div style={{ width: "250px", height: "250px", overflow: "hidden" }}>
+              <img
+                style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                src={currentSpecSand.image}
+                alt={currentSpecSand.sandwich}
+              />
+            </div>
+          </div>
+        </center>
+        <div>
+          <h2 style={{ textAlign: "center" }}>Ingredients</h2>
+          <p>Bread: {currentSpecSand["bread"]}</p>
+          {Object.entries(currentSpecSand.ingredients).map(([key, value], index) => (
+            <p key={index}> {value.name}: <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => UpdateSandwich(index)} >{value.on ? "Remove" : "Add"}</button></p>
+          ))}
+          <button type="button" className="btn btn-outline-success" onClick={() => { viewCart() }}>Return to Cart</button>
+          <br /><br />
+        </div>
+      </div>
+    );
+  }
+
+
 
   const total = () => {
     let totalVal = 0;
     for (let i = 0; i < cart.length; i++) {
-      totalVal += (cart[i].price * cart[i].amount);
+      totalVal += (cart[i].price);
     }
     setCartTotal(totalVal);
   };
@@ -150,10 +257,10 @@ function App() {
 
   function loadCart() {
     fetch("http://localhost:8081/cart")
-    .then((response) => response.json())
-    .then((cart) => {
-      setCart(cart);
-    });
+      .then((response) => response.json())
+      .then((cart) => {
+        setCart(cart);
+      });
   }
 
   useEffect(() => {
@@ -179,10 +286,9 @@ function App() {
 
     return (
       <div>
-        <br /><br />
-        <button onClick={cartReturn} className="btn btn-primary">Return</button>
         <br />
         <br />
+        <h2>Cart Items({cartItems.length})</h2>
         <div>{cartItems}</div>
         <br />
         <div style={{ textAlign: "right", fontSize: "20px", fcolor: "red" }}>Total: ${cartTotal}</div>
@@ -307,6 +413,10 @@ function App() {
     setViewer(3);
   };
 
+  const viewEditSandwichSpecial = () => {
+    setViewer(5);
+  };
+
   return (
     <div>
       <header data-bs-theme="dark">
@@ -342,6 +452,7 @@ function App() {
       {viewer === 2 && <EditSandwich />}
       {viewer === 3 && <Cart />}
       {viewer === 4 && <Confirmation />}
+      {viewer === 5 && <EditSandwichSpecial />}
     </div>
   );
 }
