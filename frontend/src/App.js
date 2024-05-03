@@ -294,7 +294,7 @@ function App() {
     const onSubmit = (data) => {
       document.getElementById("fullname").value = "";
       setPaymentInfo(data);
-      setViewer(3);
+      setViewer(4);
     };
 
     const cartReturn = () => {
@@ -389,10 +389,47 @@ function App() {
     );
   }
 
+  const cartItemsSummary = cart.map((el) => (
+    <div key={el._id} style={{ display: "inline-block", marginRight: "20px" }}>
+      <img className="img-fluid" src={el.image} alt={el.sandwich} style={{ width: "150px", height: "150px", objectFit: "cover" }} />
+      <br />
+      <div>{el.sandwich}</div>
+      <div style={{ fontSize: "20px" }}> ${el.price} </div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {el.ingredients.map((ingredient) => (
+          <div
+            key={ingredient.name}
+            style={{
+              marginBottom: "5px",
+            }}
+          >
+            {ingredient.on ? ingredient.name : `NO ${ingredient.name}`}
+          </div>
+        ))}
+      </div>
+    </div>
+  ));
+
+  const ClearCart = async () => {
+    try {
+      await Promise.all(cart.map(async (sandwich) => {
+        await DeleteSandwich(sandwich);
+      }));
+  
+      console.log('Cart cleared successfully');
+
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      throw error;
+    }
+  };
+  
+
   function Confirmation() {
     const updateHooks = () => {
       setViewer(0);
       setPaymentInfo({});
+      ClearCart();
       // setCart([]);
     };
 
@@ -400,7 +437,7 @@ function App() {
       <div>
         <br /><br /><br />
         <h1>Payment Summary</h1>
-        <div>{cartItems}</div>
+        <div>{cartItemsSummary}</div>
         <br />
         <div style={{ textAlign: "right", fontSize: "20px", fcolor: "red" }}>Total: ${cartTotal}</div>
         <h3>{paymentInfo.fullName}</h3>
