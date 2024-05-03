@@ -141,6 +141,28 @@ function App() {
     }
   };
 
+  const DeleteSandwich = async (sandwich) => {
+    try {
+      const response = await fetch(`http://localhost:8081/deleteSandwich/${sandwich._id}`, {
+        method: 'DELETE'
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to delete sandwich: ' + response.statusText);
+      }
+  
+      // Handle success
+      const deletedSandwich = await response.json();
+      console.log('Sandwich deleted successfully:', deletedSandwich);
+      loadCart();
+      return deletedSandwich;
+    } catch (error) {
+      console.error('Error deleting sandwich:', error);
+      throw error;
+    }
+  };
+  
+
   const [paymentInfo, setPaymentInfo] = useState({});
   const [cart, setCart] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
@@ -168,7 +190,7 @@ function App() {
           setcurrentSpecSand(el);
           viewEditSandwichSpecial();
         }}>Edit</button>
-        <button type="button" className="btn btn-outline-danger" onClick={() => { }}>Remove</button>
+        <button type="button" className="btn btn-outline-danger" onClick={() => { DeleteSandwich(el);}}>Remove</button>
       </div>
     </div>
   ));
@@ -211,7 +233,7 @@ function App() {
         <br /><br />
         <center>
           <div className="customize">
-            <h1>Customize Sandwich (Special)</h1>
+            <h1>Customize Sandwich</h1>
           </div>
           <div className="customize">
             <h2>{currentSpecSand.sandwich}</h2>

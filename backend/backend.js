@@ -73,67 +73,61 @@ app.post("/addSandwich", async (req, res) => {
 });
 
 app.put("/update/:id", async (req, res) => {
-
-  const id = Number(req.params.id);
-  const keys = Object.keys(req.body);
-  const ingredient = keys[0];
-  const query = { id: id };
-  await client.connect();
-  console.log("Sandwich to Update :", id);
-  console.log("Keys: ", keys[0]);
-  console.log("Value: ", req.body[keys[0]])
+  const id = req.params.id;
 
   if (!ObjectId.isValid(id)) {
     return res.status(400).send({ message: "Invalid ID format" });
   }
 
   try {
-  // Data for updating the document, typically comes from the request body
-  console.log(req.body);
-  const updateData = {
-    $set: {
-      [ingredient]: req.body[keys[0]]
-    },
-  };
+    const query = { _id: new ObjectId(id) }; 
+    const sandwichUpdated = await db.collection("cart").findOne(query);
 
-  // Add options if needed, for example { upsert: true } to create a document if it doesn't exist
-  const options = {};
-  const results = await db
-    .collection("cart")
-    .updateOne(query, updateData, options);
-  if (results.matchedCount === 0) {
-    return res.status(404).send({ message: "Cart not found" });
+    if (!sandwichUpdated) {
+      return res.status(404).send({ message: "Sandwich not found" });
+    }
+
+    const updateData = req.body;
+
+    const options = {};
+    const result = await db.collection("cart").updateOne(query, { $set: updateData }, options);
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: "Update failed: Sandwich not found" });
+    }
+
+    res.status(200).send({ message: "Sandwich updated successfully", updatedSandwich: updateData });
+  } catch (error) {
+    console.error("Error updating sandwich:", error);
+    res.status(500).send({ error: "An internal server error occurred" });
   }
-
-  res.status(200);
-  res.send(results);
-  //res.send(sandwichUpdated);
-} catch (error) {
-  console.error("Error updating sandwich:", error);
-  res.status(500).send({ error: "An internal server error occurred" });
-}
 });
 
 app.delete("/deleteSandwich/:id", async (req, res) => {
+  const id = req.params.id;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).send({ message: "Invalid ID format" });
+  }
+
   try {
-    const id = Number(req.params.id);
     await client.connect();
     console.log("Sandwich to delete :", id);
-    const query = { id: id };
+    const query = { _id: new ObjectId(id) }; 
 
-    const robotDeleted = await db.collection("cart").findOne(query);
+    const sandwichDeleted = await db.collection("cart").findOneAndDelete(query);
 
-    // delete
-    const results = await db.collection("cart").deleteOne(query);
-    res.status(200);
-    res.send(results);
+    if (sandwichDeleted.value) {
+      return res.status(404).send({ message: "Sandwich not found" });
+    }
 
-    res.send(robotDeleted);
+    res.status(200).send({ message: "Sandwich deleted successfully", deletedSandwich: sandwichDeleted.value });
   } catch (error) {
     console.error("Error deleting sandwich:", error);
     res.status(500).send({ message: "Internal Server Error" });
   }
 });
+
 
 app.listen(port, () => {
   console.log("App listening at http://%s:%s", host, port);
